@@ -3,13 +3,307 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Chess.com</title>
-</head>
-<body>
-  <h1>Welcome to Chess.com</h1>
+  <title>Strategic Chess - Realtime Multiplayer</title>
+  <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --font-display: 'Bebas Neue', sans-serif;
+      --font-body: 'Inter', sans-serif;
+    }
 
+    body {
+      font-family: var(--font-body);
+      background-color: #ffffff;
+      color: #000000;
+    }
+
+    h1, h2, h3, .display-font {
+      font-family: var(--font-display);
+      letter-spacing: 0.04em;
+    }
+
+    /* ── Chessboard ── */
+    .chessboard {
+      display: grid;
+      grid-template-columns: repeat(8, minmax(0, 1fr));
+      grid-template-rows: repeat(8, minmax(0, 1fr));
+      width: 480px;
+      height: 480px;
+      overflow: hidden;
+      user-select: none;
+      transition: transform 0.4s ease-in-out;
+      border: 3px solid #000;
+    }
+
+    @media (max-width: 640px) {
+      .chessboard { width: 340px; height: 340px; }
+    }
+
+    .square {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      font-size: 2.75rem;
+    }
+
+    @media (max-width: 640px) {
+      .square { font-size: 2rem; }
+    }
+
+    .square.light { background-color: #f0f0f0; }
+    .square.dark  { background-color: #525252; }
+
+    .square.selected { background-color: #737373 !important; }
+
+    .square.in-check {
+      background: repeating-linear-gradient(
+        45deg, #ff0000, #ff0000 4px, #cc0000 4px, #cc0000 8px
+      ) !important;
+      animation: pulseCheck 0.8s infinite alternate;
+    }
+
+    @keyframes pulseCheck {
+      from { opacity: 0.85; }
+      to   { opacity: 1; }
+    }
+
+    .piece {
+      cursor: pointer;
+      z-index: 10;
+      transition: transform 0.1s ease;
+      line-height: 1;
+    }
+
+    .piece.draggable { cursor: grab; }
+
+    .piece.white {
+      color: #ffffff;
+      filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.9));
+    }
+
+    .piece.black {
+      color: #0d0d0d;
+      filter: drop-shadow(0 0 2px rgba(255, 255, 255, 0.9)) drop-shadow(0 1px 2px rgba(255, 255, 255, 0.6));
+    }
+
+    .flipped { transform: rotate(180deg); }
+    .flipped .piece { transform: rotate(180deg); }
+
+    .shake {
+      animation: shake 0.4s cubic-bezier(.36,.07,.19,.97) both;
+    }
+
+    @keyframes shake {
+      10%, 90% { transform: translate3d(-1px, 0, 0); }
+      20%, 80% { transform: translate3d(2px, 0, 0); }
+      30%, 50%, 70% { transform: translate3d(-4px, 0, 0); }
+      40%, 60% { transform: translate3d(4px, 0, 0); }
+    }
+
+    /* ── Scrollbar ── */
+    ::-webkit-scrollbar { width: 5px; }
+    ::-webkit-scrollbar-track { background: #f0f0f0; }
+    ::-webkit-scrollbar-thumb { background: #999; border-radius: 3px; }
+
+    /* ── Decorative dot grid ── */
+    .dot-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 5px);
+      grid-template-rows: repeat(3, 5px);
+      gap: 3px;
+    }
+    .dot-grid span {
+      width: 5px; height: 5px;
+      border-radius: 50%;
+      background: currentColor;
+    }
+
+    /* ── Button style ── */
+    .btn-primary {
+      background: #000;
+      color: #fff;
+      font-family: var(--font-display);
+      font-size: 1rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      padding: 12px 24px;
+      border: 2px solid #000;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+    }
+    .btn-primary:hover {
+      background: #fff;
+      color: #000;
+    }
+
+    .btn-outline {
+      background: #fff;
+      color: #000;
+      font-family: var(--font-display);
+      font-size: 1rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      padding: 12px 24px;
+      border: 2px solid #000;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+    }
+    .btn-outline:hover {
+      background: #000;
+      color: #fff;
+    }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col bg-white text-black">
+
+  <!-- ═══ Header ═══ -->
+  <header class="w-full bg-black text-white px-6 py-3 flex items-center justify-between">
+    <div class="flex items-center gap-3">
+      <!-- Chess pixel icon -->
+      <div class="text-white text-2xl">
+        <i class="fa-solid fa-chess-knight"></i>
+      </div>
+      <div>
+        <h1 class="display-font text-xl leading-tight tracking-widest">STRATEGIC CHESS</h1>
+      </div>
+    </div>
+
+    <!-- Turn Banner -->
+    <div id="turnBanner" class="flex items-center gap-3 px-5 py-1.5 border border-white/30 text-sm font-medium tracking-wider uppercase" style="font-family: var(--font-display);">
+      <span class="w-3 h-3 rounded-full bg-white animate-pulse" id="turnDot"></span>
+      <span id="turnText">White to Move</span>
+    </div>
+
+    <!-- Player Role Badge -->
+    <div id="roleBadge" class="flex items-center gap-2 text-xs font-semibold tracking-wide uppercase border border-white/30 px-4 py-2" style="font-family: var(--font-display); font-size: 0.85rem;">
+      <i class="fa-solid fa-user"></i>
+      <span id="roleText">Connecting...</span>
+    </div>
+  </header>
+
+  <!-- ═══ Main ═══ -->
+  <main class="flex-1 flex flex-col md:flex-row items-center justify-center p-6 gap-10 max-w-7xl mx-auto w-full">
+
+    <!-- Left: Board Section -->
+    <div class="flex flex-col items-center gap-4">
+
+      <!-- Top Player Card -->
+      <div class="w-[480px] max-w-full bg-black text-white p-3 flex items-center justify-between">
+        <div class="flex items-center gap-3">
+          <div class="w-9 h-9 border-2 border-white flex items-center justify-center text-white text-sm font-bold" id="topAvatar">
+            <i class="fa-solid fa-chess-king"></i>
+          </div>
+          <div>
+            <div class="text-sm font-bold tracking-wide uppercase flex items-center gap-2" id="topPlayerName" style="font-family: var(--font-display); font-size: 0.95rem;">
+              Opponent
+              <span class="w-2 h-2 rounded-full bg-gray-500" id="topOnlineDot"></span>
+            </div>
+            <span class="text-[10px] text-gray-400 uppercase tracking-wider" id="topRoleText">Black</span>
+          </div>
+        </div>
+        <div class="flex items-center gap-1 text-lg" id="topCaptured"></div>
+      </div>
+
+      <!-- Chessboard -->
+      <div class="relative">
+        <div id="chessboard" class="chessboard"></div>
+      </div>
+
+      <!-- Bottom Player Card -->
+      <div class="w-[480px] max-w-full bg-white text-black border-3 border-black p-3 flex items-center justify-between" style="border-width: 3px;">
+        <div class="flex items-center gap-3">
+          <div class="w-9 h-9 bg-black text-white flex items-center justify-center text-sm font-bold" id="bottomAvatar">
+            <i class="fa-solid fa-user"></i>
+          </div>
+          <div>
+            <div class="text-sm font-bold tracking-wide uppercase flex items-center gap-2" id="bottomPlayerName" style="font-family: var(--font-display); font-size: 0.95rem;">
+              You
+              <span class="w-2 h-2 rounded-full bg-green-600" id="bottomOnlineDot"></span>
+            </div>
+            <span class="text-[10px] text-gray-500 uppercase tracking-wider" id="bottomRoleText">White</span>
+          </div>
+        </div>
+        <div class="flex items-center gap-1 text-lg" id="bottomCaptured"></div>
+      </div>
+
+    </div>
+
+    <!-- Right: Sidebar Panel -->
+    <div class="w-full md:w-80 border-3 border-black flex flex-col justify-between h-[560px]" style="border-width: 3px;">
+
+      <!-- Panel Header -->
+      <div class="bg-black text-white px-5 py-3 flex items-center justify-between">
+        <h2 class="display-font text-lg tracking-widest">MOVE HISTORY</h2>
+        <span class="text-[10px] text-gray-400 uppercase tracking-wider font-medium" id="moveCount">0 moves</span>
+      </div>
+
+      <!-- Moves List -->
+      <div class="flex-1 overflow-y-auto px-4 py-3 flex flex-col gap-1 text-sm bg-white" id="moveHistoryList">
+        <p class="text-xs text-gray-400 text-center py-8 uppercase tracking-wider">Moves will appear here as you play...</p>
+      </div>
+
+      <!-- Actions -->
+      <div class="p-4 border-t-3 border-black flex flex-col gap-3" style="border-top-width: 3px;">
+        <button id="restartBtn" class="btn-primary w-full">
+          <i class="fa-solid fa-rotate-right"></i>
+          Restart Game
+          <span>→</span>
+        </button>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- ═══ Footer ═══ -->
+  <footer class="bg-black text-white px-6 py-3 flex items-center justify-between text-[10px] uppercase tracking-widest">
+    <div class="flex items-center gap-2">
+      <div class="dot-grid text-white">
+        <span></span><span></span><span></span>
+        <span></span><span></span><span></span>
+        <span></span><span></span><span></span>
+      </div>
+      <span class="ml-2" style="font-family: var(--font-display); font-size: 0.75rem; letter-spacing: 0.15em;">LOGIC. FOCUS. VICTORY.</span>
+    </div>
+    <span class="text-gray-500">Every Move Shapes Your Mind.</span>
+  </footer>
+
+  <!-- ═══ Toast Notification ═══ -->
+  <div id="toast" class="fixed top-20 right-6 bg-black text-white px-5 py-3 shadow-xl text-sm transition-all transform translate-y-[-100px] opacity-0 pointer-events-none z-50 flex items-center gap-3 border-2 border-black" style="font-family: var(--font-display); letter-spacing: 0.08em; font-size: 0.95rem;">
+    <i class="fa-solid fa-circle-exclamation"></i>
+    <span id="toastMsg">ILLEGAL MOVE!</span>
+  </div>
+
+  <!-- ═══ Game Over Modal ═══ -->
+  <div id="gameOverModal" class="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 z-50 hidden">
+    <div class="bg-white border-3 border-black p-8 max-w-sm w-full text-center flex flex-col items-center gap-5" style="border-width: 3px;">
+      <!-- Trophy icon -->
+      <div class="w-20 h-20 bg-black text-white flex items-center justify-center text-4xl">
+        <i class="fa-solid fa-trophy"></i>
+      </div>
+      <div>
+        <h2 id="modalTitle" class="display-font text-4xl text-black mb-1 tracking-wide">GAME OVER</h2>
+        <p id="modalReason" class="text-xs text-gray-500 uppercase tracking-wider font-medium">White won by checkmate</p>
+      </div>
+      <button id="modalPlayAgainBtn" class="btn-primary w-full">
+        Play Again
+        <span>→</span>
+      </button>
+    </div>
+  </div>
 
   <script src="/socket.io/socket.io.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/chess.js/0.10.3/chess.min.js" integrity="sha512-xRllwz2gdZciIB+AkEbeq+gVhX8VB8XsfqeFbUh+SzHlN96dEduwtTuVuc2u9EROlmW9+yhRlxjif66ORpsgVA==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
   <script src="/javascripts/chessgame.js"></script>
 </body>
 </html>
