@@ -1,9 +1,11 @@
-# ♟️ Strategic Chess - Realtime Multiplayer Web App
-
+# ♟️ Strategic Chess - Realtime Multiplayer Web App 
 A high-performance, real-time multiplayer chess web application. Built using **Node.js**, **Express**, **Socket.IO**, **Chess.js**, and **Tailwind CSS**.
 
 ![Strategic Chess Banner](https://img.shields.io/badge/Node.js-18%2B-green?style=flat-square&logo=node.js)
 ![Socket.IO](https://img.shields.io/badge/Socket.IO-4.8-black?style=flat-square&logo=socketdotio)
+[![Live Demo](https://img.shields.io/badge/Live%20Demo-Render-brightgreen?style=flat-square&logo=render)](https://chess-multiplayer-ncnz.onrender.com)
+
+🔗 **Live Demo**: [https://chess-multiplayer-ncnz.onrender.com](https://chess-multiplayer-ncnz.onrender.com)
 
 ---
 
