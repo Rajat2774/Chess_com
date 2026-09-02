@@ -36,6 +36,7 @@ let playerRole = null; // 'w', 'b', or 's'
 let currentTurn = 'w';
 let moveHistory = [];
 let toastTimeout = null;
+let gameActive = false;
 
 // Authentic Chess.com Sound Effects
 const chessSounds = {
@@ -145,8 +146,8 @@ const renderBoard = () => {
                 pieceElement.classList.add("piece", square.color === "w" ? "white" : "black");
                 pieceElement.innerText = getPieceUnicode(square);
 
-                // Draggable condition: playerRole matches piece color & it is current player's turn
-                pieceElement.draggable = (playerRole === square.color) && (playerRole === currentTurn);
+                // Draggable condition: game active, playerRole matches piece color & it is current player's turn
+                pieceElement.draggable = gameActive && (playerRole === square.color) && (playerRole === currentTurn);
                 if (pieceElement.draggable) {
                     pieceElement.classList.add("draggable");
                 }
@@ -201,7 +202,10 @@ const renderBoard = () => {
 };
 
 const handleMove = (source, target) => {
-    // Basic turn pre-check
+    if (!gameActive) {
+        showToast("Waiting for opponent to join!");
+        return;
+    }
     if (playerRole !== currentTurn) {
         showToast("It is not your turn!");
         return;
@@ -247,12 +251,24 @@ const renderMoveHistory = () => {
 // Socket Listeners
 socket.on("playerRole", (role) => {
     playerRole = role;
+    moveHistory = [];
+    renderMoveHistory();
     renderBoard();
 });
 
 socket.on("spectatorRole", () => {
     playerRole = "s";
     renderBoard();
+});
+
+socket.on("gameStarted", () => {
+    gameActive = true;
+    chess.reset();
+    moveHistory = [];
+    renderMoveHistory();
+    gameOverModal.classList.add("hidden");
+    renderBoard();
+    showToast(playerRole === 'w' ? "GAME STARTED! YOUR MOVE" : "GAME STARTED! WHITE'S MOVE");
 });
 
 socket.on("playersState", (state) => {
@@ -305,6 +321,7 @@ socket.on("invalidMove", (data) => {
 });
 
 socket.on("gameOver", (data) => {
+    gameActive = false;
     gameOverModal.classList.remove("hidden");
     playSound('gameEnd');
 
@@ -331,15 +348,16 @@ socket.on("gameOver", (data) => {
 
     modalTitle.innerText = winnerText;
     modalReason.innerText = reasonText;
+    renderBoard();
 });
 
 socket.on("gameReset", () => {
     chess.reset();
     moveHistory = [];
+    gameActive = !!(playerRole === 'w' || playerRole === 'b');
     renderMoveHistory();
     gameOverModal.classList.add("hidden");
     renderBoard();
-    showToast("Game Restarted");
 });
 
 restartBtn.addEventListener("click", () => {
