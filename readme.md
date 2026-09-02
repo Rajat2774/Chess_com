@@ -17,7 +17,7 @@ A high-performance, real-time multiplayer chess web application. Built using **N
   - 2nd Player $\rightarrow$ **Black** (`♚`)
   - 3rd+ Players $\rightarrow$ **Spectator** (`👀`)
   - Automatically flips the board 180° for the Black player.
-- 🎨 **Monochrome High-Contrast Theme**: Elegant black & white editorial design with **Bebas Neue** typography and high-visibility piece contrast.
+
 - 🔊 **Authentic Chess Sound Effects**: Integrated Chess.com sound effects for:
   - Standard Moves
   - Piece Captures
@@ -25,8 +25,11 @@ A high-performance, real-time multiplayer chess web application. Built using **N
   - Illegal Move Alerts
   - Castling & Pawn Promotions
   - Victory / Game Over Fanfare
+
 - ⚠️ **Turn & Illegal Move Protection**: Drag-and-drop validation with red toast notifications and board shake animations for invalid moves.
+
 - 🏆 **Game Over & Draw Modals**: Automatic detection for Checkmate, Stalemate, Threefold Repetition, Insufficient Material, and Player Disconnection forfeits.
+
 - 📜 **Live Move History**: Side panel recording standard algebraic notation (`1. e4 e5`) in real time.
 - 🔄 **One-Click Game Restart**: Instant board reset for both players using the "Play Again" button.
 
