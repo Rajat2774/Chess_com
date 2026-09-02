@@ -223,7 +223,7 @@ const handleMove = (source, target) => {
 const renderMoveHistory = () => {
     moveHistoryList.innerHTML = "";
     if (moveHistory.length === 0) {
-        moveHistoryList.innerHTML = `<p class="text-xs text-gray-400 text-center py-8 uppercase tracking-wider">Moves will appear here as you play...</p>`;
+        moveHistoryList.innerHTML = `<p class="font-mono-sub text-xs text-[#8c8069] text-center py-10 tracking-wider">Moves will appear here as you play...</p>`;
         moveCount.innerText = "0 MOVES";
         return;
     }
@@ -232,16 +232,16 @@ const renderMoveHistory = () => {
 
     for (let i = 0; i < moveHistory.length; i += 2) {
         const moveRow = document.createElement("div");
-        moveRow.className = "flex items-center px-3 py-2 border-b border-gray-200 hover:bg-gray-100 text-xs font-mono tracking-wider";
+        moveRow.className = "flex items-center px-3 py-2 border-b border-[#e2d8c0] hover:bg-[#eae2cf] text-xs font-mono-sub tracking-wider";
 
         const moveNum = Math.floor(i / 2) + 1;
         const whiteMove = moveHistory[i] ? (moveHistory[i].san || `${moveHistory[i].from}-${moveHistory[i].to}`) : "";
         const blackMove = moveHistory[i + 1] ? (moveHistory[i + 1].san || `${moveHistory[i + 1].from}-${moveHistory[i + 1].to}`) : "";
 
         moveRow.innerHTML = `
-            <span class="w-8 text-gray-400 font-bold">${moveNum}.</span>
-            <span class="flex-1 text-black font-semibold">${whiteMove}</span>
-            <span class="flex-1 text-gray-600 font-semibold">${blackMove}</span>
+            <span class="w-8 text-[#a39478] font-bold">${moveNum}.</span>
+            <span class="flex-1 text-[#1c1a17] font-bold">${whiteMove}</span>
+            <span class="flex-1 text-[#70644e] font-bold">${blackMove}</span>
         `;
         moveHistoryList.appendChild(moveRow);
     }
